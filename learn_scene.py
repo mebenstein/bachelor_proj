@@ -21,7 +21,7 @@ import click
 @click.option('--bound',default=3,type=int,help="scene bounding box size")
 @click.option('--scale',default=0.33,type=int,help="pose scale adjustment")
 @click.option('--num_ray_patches',default=512,type=int,help="number of 3x3 sample patches")
-@click.option('--workspace',default="workspace",type=str,help="workspace name")
+@click.option('--workspace',default="default",type=str,help="workspace name")
 def main(seq_name:str, loss_type:str, epochs:int, bound:float, scale:float, num_ray_patches:int, workspace:str):
     """Train a NeRF on a scene and save the weights to a workspace
 
@@ -59,31 +59,32 @@ def main(seq_name:str, loss_type:str, epochs:int, bound:float, scale:float, num_
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True)
 
     scheduler = lambda optimizer: optim.lr_scheduler.MultiStepLR(optimizer, milestones=[1000, 1500, 2000] if opt.gui else [50, 100, 150], gamma=0.33)
-    trainer = Trainer('ngp', vars(opt), model, workspace="workspace/"+workspace, use_checkpoint=None, optimizer=optimizer, criterion=criterion, ema_decay=0.95, fp16=True, lr_scheduler=scheduler,eval_interval=10,  )
+    trainer = Trainer('ngp', vars(opt), model, workspace="workspace/"+workspace, optimizer=optimizer, criterion=criterion, ema_decay=0.95, fp16=True, lr_scheduler=scheduler,eval_interval=10,  )
 
-    for epoch in range(epochs):
+    bar = tqdm.tqdm(range(trainer.epoch,epochs),initial=trainer.epoch,total=epochs,desc="Epochs")
+    for epoch in bar:
         torch.cuda.empty_cache()
 
         with torch.cuda.amp.autocast():
             trainer.model.update_extra_state(bound)
         losses = 0
         
-        for data in tqdm.tqdm(train_loader):
+        for data in tqdm.tqdm(train_loader,desc="Samples",leave=False):
             data = trainer.prepare_data(data)
 
             trainer.optimizer.zero_grad()
 
             with torch.cuda.amp.autocast():
                 #preds, truths, loss = trainer.train_step(data)
-                images = data["image"] # [B, H, W, 3/4]
+                images = data["image"][...,:3] # [B, H, W, 3/4]
                 poses = data["pose"] # [B, 4, 4]
                 intrinsics = data["intrinsic"] # [B, 3, 3]
 
                 # sample rays 
                 B, H, W, C = images.shape
-                rays_o, rays_d, inds = get_patched_rays(poses, intrinsics, H, W, 512)#my_rays(poses, intrinsics, H, W, 4608)
+                rays_o, rays_d, inds = get_patched_rays(poses, intrinsics, H, W, num_ray_patches)#my_rays(poses, intrinsics, H, W, 4608)
                 images = torch.gather(images.reshape(B, -1, C), 1, torch.stack(C*[inds], -1)) # [B, N, 3/4]
-
+                
                 # train with random background color if using alpha mixing
                 #bg_color = torch.ones(3, device=images.device) # [3], fixed white background
                 bg_color = torch.rand(3, device=images.device) # [3], frame-wise random.
@@ -115,11 +116,15 @@ def main(seq_name:str, loss_type:str, epochs:int, bound:float, scale:float, num_
 
             loss_val = loss.item()
             losses += loss_val/len(train_loader)
-        
+
+        bar.set_description("Epochs (mean loss {}):".format(losses))
+
         trainer.ema.update()
         trainer.lr_scheduler.step()
 
         trainer.save_checkpoint(full=True)
+        trainer.epoch += 1
+
     trainer.save_checkpoint(full=False,best=True)
 
 if __name__ == "__main__":

@@ -2,9 +2,9 @@
 This repository contains the code to my bachelors project.
 
 ## Requirements
-+ FFMPEG
-+ COLMAP
-
++ [FFMPEG](https://www.ffmpeg.org/download.html)
++ [COLMAP](https://colmap.github.io/install.html)
++ [tiny-cuda-nn](https://github.com/NVlabs/tiny-cuda-nn.git)
 
 ## Installation
 
@@ -42,5 +42,7 @@ This repository contains the code to my bachelors project.
     ```
 
 ## Usage
+1. Train representation. Execute `python learn_scene.py --help` to see the available paramters. The weights will be stored in a workspace folder. (During the first execution PyTorch bindings will be compiled and thus it make take a while to start)
+2. View representation. Execute `python view_scene.py --help`
 
 ## License
