@@ -19,7 +19,6 @@ def get_patched_rays(c2w, intrinsics, H, W, n_patches=512,patch_dim=3):
     j = torch.gather(j, -1, select_inds)
 
     pixel_points_cam = lift(i, j, torch.ones_like(i), intrinsics=intrinsics)
-    pixel_points_cam = torch.cat((pixel_points_cam,torch.ones_like(pixel_points_cam[...,:1])),dim=-1)
     pixel_points_cam = pixel_points_cam.transpose(-1, -2)
 
     world_coords = torch.bmm(c2w,pixel_points_cam).transpose(-1, -2)[..., :3]
