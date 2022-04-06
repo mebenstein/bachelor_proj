@@ -1,0 +1,6 @@
+[submodule "torch-ngp"]
+	path = torch-ngp
+	url = https://github.com/ashawkey/torch-ngp.git
+[submodule "deblurganv2"]
+	path = deblurganv2
+	url = https://github.com/VITA-Group/DeblurGANv2.git

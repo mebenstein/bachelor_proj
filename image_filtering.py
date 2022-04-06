@@ -17,7 +17,8 @@ def get_blur(fname:str) -> float:
     Returns:
         float: bluriness value
     """    
-    img = cv2.imread(fname)[...,[2,1,0]]
+
+    img = cv2.imread(fname)
     blur = cv2.Laplacian(img, cv2.CV_64F).var()
     
     return blur
@@ -31,7 +32,7 @@ def get_blurs(paths:List[str]) -> List[float]:
     Returns:
         List[float]: list of bluriness values
     """    
-    with Pool(12) as p:
+    with Pool(12) as p: # run in parrallel with progress bar
        return list(tqdm(p.imap(get_blur, paths), total=len(paths), desc="calculating image blur"))
 
 def filter_images(paths:List[str], interval:int, threshold:float) -> Iterator[int]:
@@ -45,10 +46,10 @@ def filter_images(paths:List[str], interval:int, threshold:float) -> Iterator[in
     Yields:
         Iterator[int]: indices of images in the resulting subset
     """    
-    blurs = get_blurs(paths)
+    blurs = get_blurs(paths) # get blur values
 
     for i in range(0,len(blurs),interval):
-        sub = blurs[i:i+interval]
+        sub = blurs[i:i+interval] # select subsection of interval size
         amax = np.argmax(sub)
         if sub[amax] > threshold:
             yield i+amax
@@ -67,12 +68,15 @@ def filter_folder(input:str,target:str, interval:int, threshold:float):
         interval (int): frame selection interval, should be chosen to yield 50-100 images\n
         threshold (float): minimum sharpness threshold\n
     """    
+
     if not os.path.exists(target):
         os.makedirs(target)
     
+    # get sorted images files and generate absolute paths
     frames = sorted(filter(lambda x: x.split(".")[-1].lower() in ["png","jpg","jpeg"],os.listdir(input)))
     abs_frames = list(map(partial(os.path.join,input),frames))
 
+    # copy the resulting subset to the target folder
     for i in filter_images(abs_frames, interval, threshold):
         shutil.copyfile(abs_frames[i], os.path.join(target,frames[i]))
 
