@@ -1,6 +1,31 @@
 # Michael Ebenstein's Bachelor project 
 This repository contains the code to my bachelors project.
 
+> Over the last few years Neural Radiance Fields (NeRF) have achieved breakthrough results for
+the tasks of Novel View Synthesis (NVS) and Neural Scene Representation (NSR). This work
+looks at the main advancements made to NeRFs, specifically on speed improvements during
+the training process, covering literature up to January 2022. The various methods will be
+compared on general terms and also with a focus on indoor scenes captured with a conventional
+smart phone, as this represents a real-world use case of NeRFs and goes against some simple
+assumptions made by existing methods. The main improvements will be evaluated in respect
+to ray sampling, input encoding, regularisation, network structure and task formulation. This
+analysis is then utilized to implement an architecture that extends the capabilities of state-of-
+the-art models and is able to represent a monocular RGB sequence within a couple of minutes.
+Experimental results with different architectures will be provided, with a specific focus on
+implementation considerations to best utilize GPUs for training.
+
+# Results
+
+## Convex scene
+![convex grid](figs/grid_convex.png)
+
+## Concave scene
+![concave grid](figs/grid_concave.png)
+
+## Comparison to original NeRF geometry
+![nerf grid](figs/grid.png)
+
+# Instructions
 ## Requirements
 + [FFMPEG](https://www.ffmpeg.org/download.html)
 + [COLMAP](https://colmap.github.io/install.html)
