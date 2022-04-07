@@ -1,4 +1,0 @@
-[INFO] Trainer: ngp | 2022-04-07_19-46-59 | cuda:0 | fp16 | desk_concave
-[INFO] #parameters: 28985744
-[INFO] Loading None ...
-[WARN] No checkpoint found, model randomly initialized.
