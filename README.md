@@ -5,14 +5,18 @@ This repository contains the code to my bachelors project.
 the tasks of Novel View Synthesis (NVS) and Neural Scene Representation (NSR). This work
 looks at the main advancements made to NeRFs, specifically on speed improvements during
 the training process, covering literature up to January 2022. The various methods will be
-compared on general terms and also with a focus on indoor scenes captured with a conventional
-smart phone, as this represents a real-world use case of NeRFs and goes against some simple
+compared on general terms and with a focus on indoor scenes captured with a conventional
+smart phone, as this represents a real-world use case of NeRFs that goes against some simple
 assumptions made by existing methods. The main improvements will be evaluated in respect
-to ray sampling, input encoding, regularisation, network structure and task formulation. This
-analysis is then utilized to implement an architecture that extends the capabilities of state-of-
-the-art models and is able to represent a monocular RGB sequence within a couple of minutes.
-Experimental results with different architectures will be provided, with a specific focus on
-implementation considerations to best utilize GPUs for training.
+to ray sampling, input encoding, regularisation, network structure and task formulation. The
+underlying geometric structure represented by different NeRF models is investigated to show
+which 3D scene features enable fast convergence and which inhibit the optimization process.
+This analysis is then utilized to implement an architecture that extends the capabilities of
+a state-of-the-art model (instant-ngp) and is able to represent a challenging monocular RGB
+sequence within a couple of minutes. Experimental results with different architectures will
+be provided, with a specific focus on implementation considerations to best utilize GPUs for
+training.
+
 
 # Results
 
