@@ -11,6 +11,13 @@ import time
 
 class NeRFModule(nn.Module):
     def __init__(self,in_d,dir_d,w):
+        """A single small NeRF module
+
+        Args:
+            in_d (int): input dimension
+            dir_d (int): view direction dimension
+            w (int): network width
+        """        
         super(NeRFModule, self).__init__()
         
         self.a = nn.Linear(in_d,w)
@@ -26,7 +33,7 @@ class NeRFModule(nn.Module):
         
         sigma = F.relu(x[...,:1])
         
-        x = torch.cat((x,cond),-1)
+        x = torch.cat((x,cond),-1) # inject view direction
         x = F.relu(self.d(x))
         
         rgb = torch.sigmoid(self.e(x))
@@ -35,6 +42,14 @@ class NeRFModule(nn.Module):
     
 class NeRF(KiloNeRFContainer):
     def __init__(self,center, size, splits):
+        """Global NeRF structure
+
+        Args:
+            center (tensor): global center
+            size (float): size of the bounding cube
+            splits (int): number of division along each dimension
+        """        
+        
         super(NeRF, self).__init__(center, size, splits)    
         
         self.networks = nn.ModuleList([NeRFModule(96, 27, 32) for x in range(len(self.centers))])
@@ -65,12 +80,19 @@ class NeRF(KiloNeRFContainer):
 @click.command()
 @click.argument('num_iterations',required=True,type=int)
 @click.argument('parallell',required=True,type=bool)
-def main(num_iterations, parallell):
+def main(num_iterations:int, parallell:bool):
+    """Run KiloNerf and measure it's performance
+
+    Args:
+        num_iterations (int): number of iterations to run for
+        parallell (bool): run modules in parallel or not
+    """    
     torch.set_num_interop_threads(32)
 
     dev = "cuda"
     dtype = "torch.BFloat16Tensor"
 
+    # load test data
     data = np.load('data/tiny_nerf_data.npz')
     images = data['images']
     poses = data['poses']
@@ -82,6 +104,7 @@ def main(num_iterations, parallell):
     pose = torch.from_numpy(poses[i_img]).type(dtype).to(dev)
     target = torch.from_numpy(images[i_img]).type(dtype).cuda().reshape((-1,3))
 
+    # generate input parameters
     vecs = get_vecs(H,W,focal).type(dtype).to(dev)
     oris, dirs, view_dirs = get_params(vecs,pose) 
     radii = get_radii(vecs)
@@ -96,6 +119,7 @@ def main(num_iterations, parallell):
     net.apply(init_weights)
     optim = torch.optim.Adam(net.parameters(), lr=5e-4)
 
+    # train for n iterations
     with torch.cuda.amp.autocast():
         s = time.time()
         for i in range(num_iterations):
@@ -110,7 +134,7 @@ def main(num_iterations, parallell):
             loss += ((rgb - target)**2).mean()
             loss.backward()
         
-        print("Average time per iteration:",(time.time() - s)/num_iterations)
+    print("Average time per iteration:",(time.time() - s)/num_iterations)
 
 if __name__ == "__main__":
     main()

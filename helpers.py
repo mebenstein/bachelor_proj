@@ -2,7 +2,7 @@ import torch
 from nerf.utils import *
 
 def get_patched_rays(c2w, intrinsics, H, W, n_patches=512,patch_dim=3):
-    # copied from torch-ngp
+    # modified from torch-ngp
     device = c2w.device
     rays_o = c2w[..., :3, 3] # [B, 3]
     prefix = c2w.shape[:-2]
