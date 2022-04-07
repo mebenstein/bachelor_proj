@@ -11,7 +11,6 @@ This repository contains the code to my bachelors project.
 + Clone this repository using `git clone https://github.com/mebenstein/bachelor_proj.git --recurse-submodules`
 + Download the pre-trained weights for [DeblurGANv2](https://github.com/VITA-Group/DeblurGANv2) from their repository and save them in the `deblurganv2` folder as `best_fpn.h5`
 
-
 ## Data preperation
 
 1. Create a directory for your test sequence
@@ -49,6 +48,9 @@ This repository contains the code to my bachelors project.
 + `misc` contains various Jupyter Notebooks used for benchmarking and other tests for the report
 + `grid_encoding_test.py` contains an experimental implementation of the neural hash encoding that was created in order to help me understand the technology better
 + `kilonerf.py` includes a smaller KiloNeRF benchmark
+
+## Data
+You can download the data used for the report [here](https://drive.google.com/drive/folders/1d_851b8vshHdhXx-8HOxBbd9CP8Mth4_?usp=sharing).
 
 ## License
 Please see the `LICENSE` file.
