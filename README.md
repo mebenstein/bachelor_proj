@@ -45,5 +45,10 @@ This repository contains the code to my bachelors project.
 1. Train representation. Execute `python learn_scene.py --help` to see the available paramters. The weights will be stored in a workspace folder. (During the first execution PyTorch bindings will be compiled and thus it make take a while to start)
 2. View representation. Execute `python view_scene.py --help`
 
+## Misc
++ `misc` contains various Jupyter Notebooks used for benchmarking and other tests for the report
++ `grid_encoding_test.py` contains an experimental implementation of the neural hash encoding that was created in order to help me understand the technology better
++ `kilonerf.py` includes a smaller KiloNeRF benchmark
+
 ## License
 Please see the `LICENSE` file.
