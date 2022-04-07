@@ -46,3 +46,4 @@ This repository contains the code to my bachelors project.
 2. View representation. Execute `python view_scene.py --help`
 
 ## License
+Please see the `LICENSE` file.

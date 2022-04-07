@@ -13,7 +13,6 @@ from helpers import *
 
 import click
 
-
 @click.command()
 @click.argument('seq_name',required=True)
 @click.argument('loss_type',required=True,type=click.Choice(["smooth","normal","rgb"]))
