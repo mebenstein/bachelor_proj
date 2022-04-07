@@ -1,3 +1,5 @@
+# Most methods here were adapted from the MiP-NeRF implementation
+
 import numpy as np
 import torch
 from typing import Tuple, List
@@ -17,17 +19,20 @@ def viewdir_enc(x, min_deg:int, max_deg:int, append_identity:bool=True):
  
 @torch.jit.script      
 def expected_sin(x, x_var):
-    #e = -torch.exp(x_var)
-    #se = torch.sqrt(torch.e)
-    
-    #y = se * e * torch.sin(x)
-    #y_var = torch.maximum(0, 0.5 * (1 - se**2 * e * torch.cos(2 * x)) - y**2)
-    
-    #return y, y_var
     return torch.exp(-0.5 * x_var) * torch.sin(x)
 
 @torch.jit.script    
 def integrated_pos_enc(x:Tuple[torch.Tensor,torch.Tensor], min_deg:int, max_deg:int):
+    """get MiP encoding
+
+    Args:
+        x (Tuple[torch.Tensor,torch.Tensor]): sample point and cone information
+        min_deg (int): cone min span
+        max_deg (int): cone max span
+
+    Returns:
+        tensor: IPE vector
+    """    
     x, x_cov = x
     
     scales = 2**torch.linspace(min_deg, max_deg, (max_deg - min_deg), device=x.device, dtype=x.dtype)   
@@ -43,6 +48,7 @@ def integrated_pos_enc(x:Tuple[torch.Tensor,torch.Tensor], min_deg:int, max_deg:
     
 @torch.jit.script   
 def lift_gaussian(vecs, depth_mean, depth_var, radius_var, diag:bool):
+    # see original MiP-NeRF implementation
     mean = vecs[..., None, :] * depth_mean[..., None]
     vec_mag_sq = torch.maximum(torch.tensor(1e-10,device=vecs.device, dtype=vecs.dtype), torch.sum(vecs**2, dim=-1))[:,None]
     
@@ -66,7 +72,7 @@ def lift_gaussian(vecs, depth_mean, depth_var, radius_var, diag:bool):
 
 @torch.jit.script   
 def generate_conical_frustum_gaussian(vecs, depth_start, depth_end, radius, diag:bool):
-
+    # see original MiP-NeRF implementation
     mu = (depth_start + depth_end) / 2
     musq = mu**2
 
@@ -81,6 +87,7 @@ def generate_conical_frustum_gaussian(vecs, depth_start, depth_end, radius, diag
   
 @torch.jit.script     
 def cast_rays(depth_values, origins, vecs, radii, diag:bool=True):
+    # see original MiP-NeRF implementation
     depth_start = depth_values[...,:-1]
     depth_end = depth_values[...,1:]
     
@@ -91,6 +98,7 @@ def cast_rays(depth_values, origins, vecs, radii, diag:bool=True):
 
 @torch.jit.script   
 def get_sample_depths(vecs, n_samples:int, near:int, far:int, random:bool=True):
+    # see original MiP-NeRF implementation
     depth_vals = torch.linspace(near, far, n_samples + 1,  device=vecs.device, dtype=vecs.dtype)
     
     if random:
@@ -103,6 +111,7 @@ def get_sample_depths(vecs, n_samples:int, near:int, far:int, random:bool=True):
 
 @torch.jit.script   
 def sample_rays(origins, vecs, radii,  n_samples:int, near:int, far:int, random:bool=True):
+    # see original MiP-NeRF implementation
     depth_vals = get_sample_depths(vecs, n_samples, near, far, random)
     means, covs = cast_rays(depth_vals, origins, vecs, radii)
     
@@ -110,11 +119,12 @@ def sample_rays(origins, vecs, radii,  n_samples:int, near:int, far:int, random:
     
 @torch.jit.script   
 def find_interval(mask,x):
+    # see original MiP-NeRF implementation
     return torch.where(mask, x[..., None], x[..., :1, None]).max(-2)[0], \
            torch.where(~mask, x[..., None], x[..., -1:, None]).min(-2)[0]
   
 @torch.jit.script
-def _get_tensor_eps(
+def _get_tensor_eps( # helper function to get dtype eps
     x: torch.Tensor,
     epsbf16: float = torch.finfo(torch.bfloat16).eps,
     eps16: float = torch.finfo(torch.float16).eps,
@@ -134,6 +144,7 @@ def _get_tensor_eps(
     
 @torch.jit.script     
 def sorted_piecewise_constant_pdf(bins, weights, random:bool):
+    # see original MiP-NeRF implementation
     weight_sum = weights.sum(-1, keepdim=True)
     padding = torch.clamp(1e-5 - weight_sum, min=0)
     
@@ -171,6 +182,7 @@ def sorted_piecewise_constant_pdf(bins, weights, random:bool):
 
 @torch.jit.script   
 def resample_rays(origins, vecs, radii, depth_vals, weights, padding:float, random:bool=True):
+    # see original MiP-NeRF implementation
     weights_pad = torch.cat([weights[..., :1], weights, weights[..., -1:]], -1)
     weights_max = torch.maximum(weights_pad[..., :-1], weights_pad[..., 1:])
     weights_blur = (weights_max[...,:-1] + weights_max[...,1:])/2
@@ -185,6 +197,7 @@ def resample_rays(origins, vecs, radii, depth_vals, weights, padding:float, rand
     
 @torch.jit.script   
 def cumprod_exclusive(tensor,dim:int=-1):
+    # implementation of exclusive cumprod
     cumprod = torch.cumprod(tensor, dim)
     cumprod = torch.roll(cumprod, 1, dim)
     cumprod[..., 0] = 1.0
