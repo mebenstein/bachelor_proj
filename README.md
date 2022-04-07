@@ -34,6 +34,7 @@ implementation considerations to best utilize GPUs for training.
 ## Installation
 
 + Clone this repository using `git clone https://github.com/mebenstein/bachelor_proj.git --recurse-submodules`
++ Set up an Anaconda environment and gather all requirements with `conda env update --file env.yml --prune`
 + Download the pre-trained weights for [DeblurGANv2](https://github.com/VITA-Group/DeblurGANv2) from their repository and save them in the `deblurganv2` folder as `best_fpn.h5`
 
 ## Data preperation
