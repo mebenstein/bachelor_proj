@@ -18,6 +18,8 @@ be provided, with a specific focus on implementation considerations to best util
 training.
 
 
+[Paper](paper.pdf)
+
 # Results
 
 ## Convex scene
